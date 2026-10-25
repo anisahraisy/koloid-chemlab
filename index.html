@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self';">
+  
+  <title>Kimia Koloid & Kimia Permukaan — Laboratorium Fisika S1 Kimia Murni</title>
+  <meta name="description" content="Aplikasi edukasi sains interaktif kimia koloid dan kimia permukaan tingkat S1: termodinamika antarmuka, hamburan Rayleigh-Tyndall, difusi Stokes-Einstein, teori DLVO, adsorpsi Gibbs, CMC, dan isoterm Langmuir-BET.">
+  <meta name="theme-color" content="#FBF9F5">
+  <link rel="manifest" href="manifest.json">
+
+  <!-- Google Fonts: Newsreader (Serif Editorial), Plus Jakarta Sans (UI Body), JetBrains Mono (Sensor HUD) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;0,6..72,700;1,6..72,400;1,6..72,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="assets/css/tokens.css">
+  <link rel="stylesheet" href="assets/css/layout.css">
+  <link rel="stylesheet" href="assets/css/components.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Editorial Masthead Header -->
+    <header class="editorial-masthead" role="banner">
+      <a href="#/matrix" class="masthead-brand" aria-label="Beranda Laboratorium Kimia Koloid">
+        <div class="masthead-logo-mark" aria-hidden="true">
+          <!-- Monoline Flask & Particle Blueprint Icon -->
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10 2v7.31L4.2 18.5A2 2 0 0 0 5.86 21.5h12.28a2 2 0 0 0 1.66-3L14 9.31V2"/>
+            <path d="M8.5 2h7"/>
+            <circle cx="10" cy="16" r="1" fill="currentColor"/>
+            <circle cx="14" cy="15" r="1.5" fill="currentColor"/>
+          </svg>
+        </div>
+        <div class="masthead-titles">
+          <span class="masthead-title">KIMIA KOLOID & PERMUKAAN</span>
+          <span class="masthead-subtitle">Standard S1 Kimia Murni • Fisikokimia Intermuka</span>
+        </div>
+      </a>
+
+      <div class="masthead-actions">
+        <div id="masthead-score-badge" class="badge badge-amber" title="Progres Studi Kasus Kuantitatif">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+          </svg>
+          <span id="masthead-score-value">0 / 600 Poin</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Application Shell -->
+    <div class="app-body">
+      <!-- Left Rail Navigation (Tablet & Desktop >= 768px) -->
+      <nav class="nav-left-rail" aria-label="Navigasi Utama Desktop">
+        <a href="#/matrix" class="nav-rail-item" data-route="#/matrix" title="Matriks Fase & Termodinamika">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="3" y="3" width="7" height="7"/>
+            <rect x="14" y="3" width="7" height="7"/>
+            <rect x="14" y="14" width="7" height="7"/>
+            <rect x="3" y="14" width="7" height="7"/>
+          </svg>
+          <span>Matriks</span>
+        </a>
+
+        <a href="#/optics-brownian" class="nav-rail-item" data-route="#/optics-brownian" title="Optik Rayleigh & Gerak Brown">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <line x1="2" y1="12" x2="22" y2="12"/>
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M12 2v3"/>
+            <path d="M12 19v3"/>
+            <path d="m4.93 4.93 2.12 2.12"/>
+            <path d="m16.95 16.95 2.12 2.12"/>
+          </svg>
+          <span>Optik/Brown</span>
+        </a>
+
+        <a href="#/dlvo" class="nav-rail-item" data-route="#/dlvo" title="Teori DLVO & Koagulasi">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M3 3v18h18"/>
+            <path d="M4 14c4-1 6-9 9-9 3 0 5 6 7 7"/>
+          </svg>
+          <span>DLVO</span>
+        </a>
+
+        <a href="#/surface" class="nav-rail-item" data-route="#/surface" title="Kimia Permukaan & Adsorpsi">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="7" cy="8" r="3"/>
+            <path d="M7 11v8"/>
+            <circle cx="17" cy="8" r="3"/>
+            <path d="M17 11v8"/>
+            <line x1="2" y1="19" x2="22" y2="19"/>
+          </svg>
+          <span>Permukaan</span>
+        </a>
+
+        <a href="#/cases" class="nav-rail-item" data-route="#/cases" title="Diagnostik Studi Kasus">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+            <polyline points="10 9 9 9 8 9"/>
+          </svg>
+          <span>Diagnostik</span>
+        </a>
+      </nav>
+
+      <!-- Main Viewport Target Container -->
+      <main id="main-content" class="main-view-wrapper" role="main" tabindex="-1">
+        <!-- Views are mounted here by the hash router -->
+      </main>
+    </div>
+
+    <!-- Bottom Navigation Bar (Smartphone < 768px) -->
+    <nav class="nav-bottom-bar" aria-label="Navigasi Bawah Seluler">
+      <a href="#/matrix" class="nav-bottom-item" data-route="#/matrix">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="3" y="3" width="7" height="7"/>
+          <rect x="14" y="3" width="7" height="7"/>
+          <rect x="14" y="14" width="7" height="7"/>
+          <rect x="3" y="14" width="7" height="7"/>
+        </svg>
+        <span>Matriks</span>
+      </a>
+
+      <a href="#/optics-brownian" class="nav-bottom-item" data-route="#/optics-brownian">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <line x1="2" y1="12" x2="22" y2="12"/>
+          <circle cx="12" cy="12" r="3"/>
+        </svg>
+        <span>Optik</span>
+      </a>
+
+      <a href="#/dlvo" class="nav-bottom-item" data-route="#/dlvo">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M3 3v18h18"/>
+          <path d="M4 14c4-1 6-9 9-9 3 0 5 6 7 7"/>
+        </svg>
+        <span>DLVO</span>
+      </a>
+
+      <a href="#/surface" class="nav-bottom-item" data-route="#/surface">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="7" cy="8" r="3"/>
+          <path d="M7 11v8"/>
+          <line x1="2" y1="19" x2="22" y2="19"/>
+        </svg>
+        <span>Permukaan</span>
+      </a>
+
+      <a href="#/cases" class="nav-bottom-item" data-route="#/cases">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+        </svg>
+        <span>Kasus</span>
+      </a>
+    </nav>
+  </div>
+
+  <!-- Entry Script -->
+  <script type="module" src="src/main.mjs"></script>
+</body>
+</html>

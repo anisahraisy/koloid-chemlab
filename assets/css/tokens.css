@@ -1,0 +1,91 @@
+/* ==========================================================================
+   DESIGN TOKENS: TACTILE SCIENTIFIC EDITORIAL PALETTE
+   Colloid & Surface Chemistry Laboratory (S1 Kimia Murni)
+   ========================================================================== */
+
+:root {
+  /* Surface & Background Paper Tones */
+  --bg-primary: #FBF9F5;          /* Warm Alabaster - scientific journal paper */
+  --bg-surface: #F2EFE9;          /* Crisp Stone - control panels & cards */
+  --bg-surface-elevated: #FFFFFF; /* High-contrast editorial white */
+  --bg-canvas: #141413;           /* Deep Graphite - optical darkroom & microscope view */
+  --bg-canvas-hud: rgba(20, 20, 19, 0.88);
+
+  /* Typography & Ink Colors */
+  --text-primary: #18181B;        /* Deep Charcoal ink */
+  --text-secondary: #52525B;      /* Muted Slate metadata */
+  --text-muted: #71717A;          /* Footnotes and secondary markings */
+  --text-inverse: #FBF9F5;        /* Light ink on dark canvas */
+  --text-inverse-muted: #A1A1AA;
+
+  /* Line & Border Tokens */
+  --border-color: #DCD7CD;
+  --border-hairline: 1px solid var(--border-color);
+  --border-strong: 1px solid #18181B;
+  --border-focus: #18181B;
+  --border-subtle: 1px solid rgba(220, 215, 205, 0.6);
+
+  /* Semantic Chemistry Accent Palette */
+  --accent-amber: #D97706;        /* Rayleigh-Tyndall & Surface Free Energy */
+  --accent-amber-subtle: rgba(217, 119, 6, 0.12);
+  --accent-amber-border: rgba(217, 119, 6, 0.35);
+
+  --accent-cobalt: #1D4ED8;       /* Hydrophilic Phase / Gouy-Chapman Diffuse Layer */
+  --accent-cobalt-subtle: rgba(29, 78, 216, 0.12);
+  --accent-cobalt-border: rgba(29, 78, 216, 0.35);
+
+  --accent-crimson: #B91C1C;      /* Coagulation / Zeta Potential Collapse / van der Waals */
+  --accent-crimson-subtle: rgba(185, 28, 28, 0.12);
+  --accent-crimson-border: rgba(185, 28, 28, 0.35);
+
+  --accent-teal: #0F766E;         /* Monolayer Adsorption & Surfactant Polar Head */
+  --accent-teal-subtle: rgba(15, 118, 110, 0.12);
+  --accent-teal-border: rgba(15, 118, 110, 0.35);
+
+  /* Typography Families */
+  --font-serif: 'Newsreader', 'Instrument Serif', Georgia, serif;
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Type Scale */
+  --text-xs: 0.75rem;    /* 12px */
+  --text-sm: 0.84375rem; /* 13.5px */
+  --text-base: 0.9375rem;/* 15px */
+  --text-md: 1.0625rem;  /* 17px */
+  --text-lg: 1.25rem;    /* 20px */
+  --text-xl: 1.5rem;     /* 24px */
+  --text-2xl: 1.875rem;  /* 30px */
+  --text-3xl: 2.25rem;   /* 36px */
+
+  /* Spacing Scale */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+
+  /* Radii - Subtle & Tactile (No hyper-rounded bubbly shapes) */
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+
+  /* Shadows - Minimal print-like shadow */
+  --shadow-subtle: 0 1px 2px rgba(24, 24, 27, 0.05);
+  --shadow-card: 0 2px 4px rgba(24, 24, 27, 0.06), 0 1px 2px rgba(24, 24, 27, 0.03);
+  --shadow-elevated: 0 6px 16px rgba(24, 24, 27, 0.09);
+
+  /* Layout Constants */
+  --header-height: 56px;
+  --nav-rail-width: 72px;
+  --nav-bottom-height: 64px;
+  --content-max-width: 1440px;
+
+  /* Transitions */
+  --transition-fast: 150ms cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-normal: 240ms cubic-bezier(0.16, 1, 0.3, 1);
+}
