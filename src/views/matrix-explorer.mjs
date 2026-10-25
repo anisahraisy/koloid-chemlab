@@ -24,22 +24,130 @@ export function createMatrixExplorerView() {
   let selectedLiquidIndex = 0; // Water (72.8 mN/m)
   let bulkMassGram = 1.0;
 
-  // Simulation particles
+  // Physical simulation parameters per dispersion medium
   let particles = [];
-  const PARTICLE_COUNT = 65;
+  let currentMedium = 'Cair'; // 'Gas' | 'Cair' | 'Padat'
+  let coagulatedEvents = []; // visual ripple effects on aerosol collision
 
-  function initParticles(width, height) {
+  // Physics constants per medium
+  const MEDIUM_PHYSICS = {
+    'Gas': {
+      label: 'Medium Gas (Aerosol)',
+      viscosity: 'η ≈ 0.018 mPa·s (Mendekati Nol)',
+      kinetics: 'Kinetika Gas Inersial (Mean Free Path Panjang, Cepat)',
+      surfaceForce: 'Koagulasi Spontan van der Waals (Tanpa Lapisan Ganda Listrik)',
+      speedScale: 3.2,
+      particleCount: 42
+    },
+    'Cair': {
+      label: 'Medium Cair (Sol / Emulsi / Buih)',
+      viscosity: 'η ≈ 1.00 mPa·s (Redaman Viskositas Stokes)',
+      kinetics: 'Gerak Brown Murni (Fluktuasi Termal Pelarut Zig-Zag)',
+      surfaceForce: 'Tolakan Elektrostatik DLVO / Lapisan Ganda Listrik (Stabil Terdispersi)',
+      speedScale: 1.0,
+      particleCount: 52
+    },
+    'Padat': {
+      label: 'Medium Padat (Buih Padat / Gel / Sol Padat)',
+      viscosity: 'η → ∞ (Matriks Kaku / Rigid Solid Network)',
+      kinetics: 'Translasi Terkunci (v_x = 0, v_y = 0)',
+      surfaceForce: 'Vibrasi Termal Kisi Lokal Frekuensi Tinggi (Amplitudo Sangat Kecil)',
+      speedScale: 0.0,
+      particleCount: 45
+    }
+  };
+
+  let solidNetworkBonds = []; // structural matrix scaffold bonds for solid medium
+
+  function initParticlesForMedium(medium, width, height) {
+    currentMedium = medium;
     particles = [];
-    for (let i = 0; i < PARTICLE_COUNT; i++) {
-      particles.push({
-        x: Math.random() * width,
-        y: Math.random() * height,
-        vx: (Math.random() - 0.5) * 1.5,
-        vy: (Math.random() - 0.5) * 1.5,
-        baseR: 3 + Math.random() * 4,
-        phase: Math.random() * Math.PI * 2,
-        color: '#D97706'
-      });
+    solidNetworkBonds = [];
+    coagulatedEvents = [];
+
+    const bounds = {
+      minX: 45,
+      maxX: width - 45,
+      minY: 40,
+      maxY: height - 40
+    };
+
+    const count = MEDIUM_PHYSICS[medium].particleCount;
+
+    if (medium === 'Gas') {
+      // Medium Gas: High speed, straight paths, spontaneous coagulation on contact
+      for (let i = 0; i < count; i++) {
+        const speed = 2.2 + Math.random() * 2.0;
+        const angle = Math.random() * Math.PI * 2;
+        particles.push({
+          x: bounds.minX + Math.random() * (bounds.maxX - bounds.minX),
+          y: bounds.minY + Math.random() * (bounds.maxY - bounds.minY),
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          baseR: 3.5,
+          currentR: 3.5,
+          mass: 1.0,
+          clusterCount: 1,
+          color: '#D97706'
+        });
+      }
+    } else if (medium === 'Cair') {
+      // Medium Cair: Damped Brownian motion, DLVO electrostatic repulsion halo
+      for (let i = 0; i < count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = 0.5 + Math.random() * 0.8;
+        particles.push({
+          x: bounds.minX + Math.random() * (bounds.maxX - bounds.minX),
+          y: bounds.minY + Math.random() * (bounds.maxY - bounds.minY),
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          baseR: 4.0 + Math.random() * 2.5,
+          currentR: 4.0 + Math.random() * 2.5,
+          phase: Math.random() * Math.PI * 2,
+          edlHaloRadius: 7.5 // Gouy-Chapman diffuse layer thickness
+        });
+      }
+    } else {
+      // Medium Padat: Rigid matrix, zero translation, local high-frequency lattice vibration
+      const cols = 9;
+      const rows = 5;
+      const stepX = (bounds.maxX - bounds.minX) / (cols - 1);
+      const stepY = (bounds.maxY - bounds.minY) / (rows - 1);
+
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const jitterX = (Math.random() - 0.5) * stepX * 0.45;
+          const jitterY = (Math.random() - 0.5) * stepY * 0.45;
+          const ox = bounds.minX + c * stepX + jitterX;
+          const oy = bounds.minY + r * stepY + jitterY;
+
+          particles.push({
+            originX: ox,
+            originY: oy,
+            x: ox,
+            y: oy,
+            vx: 0,
+            vy: 0,
+            baseR: 3.8 + Math.random() * 2.2,
+            currentR: 3.8 + Math.random() * 2.2,
+            vibeFreq: 22.0 + Math.random() * 8.0, // high frequency
+            phaseX: Math.random() * Math.PI * 2,
+            phaseY: Math.random() * Math.PI * 2
+          });
+        }
+      }
+
+      // Generate structural matrix skeleton bonds between neighboring solid sites
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[i].originX - particles[j].originX;
+          const dy = particles[i].originY - particles[j].originY;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < stepX * 1.35) {
+            solidNetworkBonds.push([i, j]);
+          }
+        }
+      }
     }
   }
 
@@ -48,7 +156,7 @@ export function createMatrixExplorerView() {
     const { width, height } = canvas.getBoundingClientRect();
     if (!width || !height) return;
 
-    // Clear canvas
+    // Clear Deep Graphite
     ctx.fillStyle = '#141413';
     ctx.fillRect(0, 0, width, height);
 
@@ -68,88 +176,297 @@ export function createMatrixExplorerView() {
   function renderColloidSystemCanvas(ctx, width, height, time, dt) {
     const sys = COLLOID_SYSTEMS.find(s => s.id === selectedSystemId) || COLLOID_SYSTEMS[4];
 
-    // Background container simulation
+    // Ensure particle medium matches current selected system
+    if (sys.dispersionMedium !== currentMedium) {
+      initParticlesForMedium(sys.dispersionMedium, width, height);
+    }
+
     ctx.save();
 
-    // Cuvette / vessel boundary lines
+    // 1. Vessel Boundary Box
+    const bounds = {
+      minX: 35,
+      maxX: width - 35,
+      minY: 30,
+      maxY: height - 30
+    };
+
     ctx.strokeStyle = 'rgba(220, 215, 205, 0.25)';
     ctx.lineWidth = 1.5;
-    ctx.strokeRect(30, 25, width - 60, height - 50);
+    ctx.strokeRect(bounds.minX, bounds.minY, bounds.maxX - bounds.minX, bounds.maxY - bounds.minY);
 
-    // Grid coordinates
-    ctx.strokeStyle = 'rgba(220, 215, 205, 0.06)';
-    ctx.lineWidth = 1;
-    for (let x = 30; x < width - 60; x += 30) {
+    // Medium background styling
+    if (currentMedium === 'Gas') {
+      // Transparent / subtle convection lines for air
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.02)';
+      ctx.fillRect(bounds.minX, bounds.minY, bounds.maxX - bounds.minX, bounds.maxY - bounds.minY);
+    } else if (currentMedium === 'Cair') {
+      // Fluid blue tinted aqueous matrix
+      ctx.fillStyle = 'rgba(29, 78, 216, 0.06)';
+      ctx.fillRect(bounds.minX, bounds.minY, bounds.maxX - bounds.minX, bounds.maxY - bounds.minY);
+    } else {
+      // Solid grey/stone rigid scaffold
+      ctx.fillStyle = 'rgba(113, 113, 122, 0.10)';
+      ctx.fillRect(bounds.minX, bounds.minY, bounds.maxX - bounds.minX, bounds.maxY - bounds.minY);
+
+      // Draw rigid solid network skeleton
+      ctx.strokeStyle = 'rgba(220, 215, 205, 0.18)';
+      ctx.lineWidth = 1.2;
+      ctx.setLineDash([2, 2]);
       ctx.beginPath();
-      ctx.moveTo(x, 25);
-      ctx.lineTo(x, height - 25);
+      for (const [idxA, idxB] of solidNetworkBonds) {
+        const pA = particles[idxA];
+        const pB = particles[idxB];
+        if (pA && pB) {
+          ctx.moveTo(pA.originX, pA.originY);
+          ctx.lineTo(pB.originX, pB.originY);
+        }
+      }
       ctx.stroke();
+      ctx.setLineDash([]);
     }
 
-    // Medium representation
-    if (sys.dispersionMedium === 'Cair') {
-      ctx.fillStyle = 'rgba(29, 78, 216, 0.05)';
-      ctx.fillRect(30, 25, width - 60, height - 50);
-    } else if (sys.dispersionMedium === 'Padat') {
-      ctx.fillStyle = 'rgba(113, 113, 122, 0.08)';
-      ctx.fillRect(30, 25, width - 60, height - 50);
+    // 2. Physics Update According to Dispersion Medium
+    if (currentMedium === 'Gas') {
+      // =========================================================================
+      // REGIME 1: MEDIUM GAS (AEROSOL CAIR / AEROSOL PADAT)
+      // Fast straight trajectories, mean free path, spontaneous van der Waals coagulation
+      // =========================================================================
+      const safeDt = Math.min(0.04, dt);
+
+      for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
+
+        // Inertial straight-line translation (viscosity ~ 0)
+        p.x += p.vx * 60 * safeDt;
+        p.y += p.vy * 60 * safeDt;
+
+        // Weak gravity drift (sedimentation tendency of aerosols)
+        p.vy += 0.008;
+
+        // Wall collisions (elastic bounce)
+        if (p.x - p.currentR < bounds.minX) {
+          p.x = bounds.minX + p.currentR;
+          p.vx = Math.abs(p.vx);
+        } else if (p.x + p.currentR > bounds.maxX) {
+          p.x = bounds.maxX - p.currentR;
+          p.vx = -Math.abs(p.vx);
+        }
+
+        if (p.y - p.currentR < bounds.minY) {
+          p.y = bounds.minY + p.currentR;
+          p.vy = Math.abs(p.vy);
+        } else if (p.y + p.currentR > bounds.maxY) {
+          p.y = bounds.maxY - p.currentR;
+          p.vy = -Math.abs(p.vy) * 0.95;
+        }
+      }
+
+      // Spontaneous van der Waals Coagulation / Aggregation in Gas
+      // (No Electric Double Layer in air to prevent contact)
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const pA = particles[i];
+          const pB = particles[j];
+          const dx = pB.x - pA.x;
+          const dy = pB.y - pA.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          const collisionDist = pA.currentR + pB.currentR;
+
+          if (dist < collisionDist && pA.clusterCount < 5 && pB.clusterCount < 5) {
+            // Aggregate: mass and volume conservation (V ~ R^3)
+            const newMass = pA.mass + pB.mass;
+            pA.vx = (pA.mass * pA.vx + pB.mass * pB.vx) / newMass;
+            pA.vy = (pA.mass * pA.vy + pB.mass * pB.vy) / newMass;
+            pA.mass = newMass;
+            pA.clusterCount += pB.clusterCount;
+            pA.currentR = Math.min(14, Math.pow(Math.pow(pA.currentR, 3) + Math.pow(pB.currentR, 3), 1 / 3));
+
+            // Record ripple effect
+            coagulatedEvents.push({
+              x: (pA.x + pB.x) / 2,
+              y: (pA.y + pB.y) / 2,
+              radius: collisionDist,
+              life: 1.0
+            });
+
+            // Respawn particle B at border as tiny new aerosol condensation droplet
+            pB.currentR = 3.2;
+            pB.mass = 1.0;
+            pB.clusterCount = 1;
+            pB.x = bounds.minX + Math.random() * (bounds.maxX - bounds.minX);
+            pB.y = bounds.minY + 6;
+            pB.vx = (Math.random() - 0.5) * 3.0;
+            pB.vy = 1.0 + Math.random() * 2.0;
+          }
+        }
+      }
+
+    } else if (currentMedium === 'Cair') {
+      // =========================================================================
+      // REGIME 2: MEDIUM CAIR (SOL, EMULSI, BUIH)
+      // Damped Stokes Brownian motion + DLVO Electric Double Layer Repulsion
+      // =========================================================================
+      for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
+
+        // Continuous stochastic thermal Brownian kicks from solvent molecules
+        p.vx += (Math.random() - 0.5) * 0.9;
+        p.vy += (Math.random() - 0.5) * 0.9;
+
+        // Stokes viscous drag damping
+        p.vx *= 0.94;
+        p.vy *= 0.94;
+
+        // Position update
+        p.x += p.vx;
+        p.y += p.vy;
+
+        // Wall boundary softly repels particles
+        if (p.x - p.currentR < bounds.minX) {
+          p.x = bounds.minX + p.currentR;
+          p.vx = Math.abs(p.vx);
+        } else if (p.x + p.currentR > bounds.maxX) {
+          p.x = bounds.maxX - p.currentR;
+          p.vx = -Math.abs(p.vx);
+        }
+
+        if (p.y - p.currentR < bounds.minY) {
+          p.y = bounds.minY + p.currentR;
+          p.vy = Math.abs(p.vy);
+        } else if (p.y + p.currentR > bounds.maxY) {
+          p.y = bounds.maxY - p.currentR;
+          p.vy = -Math.abs(p.vy);
+        }
+      }
+
+      // DLVO Electric Double Layer (EDL) Repulsion between colloidal particles
+      // Prevents coagulation; particles soft-bounce when diffuse layers overlap!
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const pA = particles[i];
+          const pB = particles[j];
+          const dx = pB.x - pA.x;
+          const dy = pB.y - pA.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          const edlThreshold = pA.currentR + pB.currentR + (pA.edlHaloRadius || 7.0);
+
+          if (dist > 0.01 && dist < edlThreshold) {
+            // Overlapping Gouy-Chapman diffuse layer creates exponential repulsion force:
+            // F_DLVO ~ exp(-kappa * h)
+            const overlap = (edlThreshold - dist) / edlThreshold;
+            const force = Math.pow(overlap, 1.6) * 1.6;
+            const nx = dx / dist;
+            const ny = dy / dist;
+
+            // Soft electrostatic repulsion
+            pA.vx -= nx * force;
+            pA.vy -= ny * force;
+            pB.vx += nx * force;
+            pB.vy += ny * force;
+          }
+        }
+      }
+
+    } else {
+      // =========================================================================
+      // REGIME 3: MEDIUM PADAT (BUIH PADAT, GEL, SOL PADAT)
+      // Rigid solid scaffold: translation locked (v=0), local high-freq thermal vibration
+      // =========================================================================
+      const vibeAmp = 1.1; // small amplitude in pixels
+
+      for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
+        p.vx = 0;
+        p.vy = 0;
+
+        // Local harmonic thermal vibration about fixed lattice coordinates
+        const thetaX = (time * 0.001) * p.vibeFreq + p.phaseX;
+        const thetaY = (time * 0.001) * (p.vibeFreq * 1.15) + p.phaseY;
+        p.x = p.originX + Math.sin(thetaX) * vibeAmp;
+        p.y = p.originY + Math.cos(thetaY) * vibeAmp;
+      }
     }
 
-    // Render particles according to system type
+    // 3. Render Particles & Visual Interfacial Effects
+    // Render coagulation flashes for aerosol medium
+    if (currentMedium === 'Gas') {
+      for (let k = coagulatedEvents.length - 1; k >= 0; k--) {
+        const ev = coagulatedEvents[k];
+        ev.life -= dt * 2.5;
+        if (ev.life <= 0) {
+          coagulatedEvents.splice(k, 1);
+        } else {
+          ctx.strokeStyle = `rgba(239, 68, 68, ${ev.life * 0.7})`;
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.arc(ev.x, ev.y, ev.radius + (1.0 - ev.life) * 14, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+      }
+    }
+
+    // Render individual particles
     for (let i = 0; i < particles.length; i++) {
       const p = particles[i];
-
-      // Update positions with Brownian drift
-      p.x += p.vx + Math.sin(time * 0.002 + p.phase) * 0.4;
-      p.y += p.vy + Math.cos(time * 0.002 + p.phase) * 0.4;
-
-      // Wall bounce
-      if (p.x < 35) { p.x = 35; p.vx *= -1; }
-      if (p.x > width - 35) { p.x = width - 35; p.vx *= -1; }
-      if (p.y < 30) { p.y = 30; p.vy *= -1; }
-      if (p.y > height - 30) { p.y = height - 30; p.vy *= -1; }
-
       ctx.save();
+
+      if (currentMedium === 'Cair') {
+        // Draw Gouy-Chapman Diffuse Electric Double Layer (EDL) Halo
+        ctx.strokeStyle = 'rgba(29, 78, 216, 0.35)';
+        ctx.lineWidth = 1.0;
+        ctx.setLineDash([2, 2]);
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.currentR + (p.edlHaloRadius || 7.0), 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+
       if (sys.id === 'foam' || sys.id === 'solid-foam') {
         // Gas bubbles with thin surfactant / liquid border
         ctx.strokeStyle = '#0F766E';
         ctx.lineWidth = 1.6;
-        ctx.fillStyle = 'rgba(15, 118, 110, 0.15)';
+        ctx.fillStyle = 'rgba(15, 118, 110, 0.2)';
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.baseR * 2.2, 0, Math.PI * 2);
+        ctx.arc(p.x, p.y, p.currentR * 1.8, 0, Math.PI * 2);
         ctx.fill();
         ctx.stroke();
       } else if (sys.id === 'emulsion' || sys.id === 'gel') {
         // Droplets with polar head markers
-        ctx.fillStyle = 'rgba(217, 119, 6, 0.85)';
+        ctx.fillStyle = 'rgba(217, 119, 6, 0.9)';
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.baseR * 1.5, 0, Math.PI * 2);
+        ctx.arc(p.x, p.y, p.currentR, 0, Math.PI * 2);
         ctx.fill();
         ctx.strokeStyle = '#F2EFE9';
-        ctx.lineWidth = 1;
+        ctx.lineWidth = 1.2;
         ctx.stroke();
       } else {
         // Sol or Aerosol solid core
-        ctx.fillStyle = '#D97706';
+        ctx.fillStyle = p.clusterCount > 1 ? '#B91C1C' : '#D97706';
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.baseR, 0, Math.PI * 2);
+        ctx.arc(p.x, p.y, p.currentR, 0, Math.PI * 2);
         ctx.fill();
 
-        // Solvation shell
-        ctx.strokeStyle = 'rgba(29, 78, 216, 0.4)';
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.baseR + 3, 0, Math.PI * 2);
-        ctx.stroke();
+        if (currentMedium === 'Padat') {
+          // Rigid anchor marker in solid crystal
+          ctx.strokeStyle = 'rgba(242, 239, 233, 0.6)';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.arc(p.originX, p.originY, 1.2, 0, Math.PI * 2);
+          ctx.stroke();
+        }
       }
+
       ctx.restore();
     }
 
-    // Watermark tag in canvas
+    // Physical Status Tag in Canvas Watermark
     ctx.fillStyle = '#8E8A82';
-    ctx.font = '11px "JetBrains Mono", monospace';
+    ctx.font = '10px "JetBrains Mono", monospace';
     ctx.textAlign = 'right';
-    ctx.fillText(`${sys.name.toUpperCase()} [${sys.dispersedPhase} dalam ${sys.dispersionMedium}]`, width - 40, height - 35);
+    const physInfo = MEDIUM_PHYSICS[currentMedium];
+    ctx.fillText(`${sys.name.toUpperCase()} [MEDIUM: ${currentMedium.toUpperCase()}]`, width - 40, height - 38);
+    ctx.fillText(`${physInfo.surfaceForce}`, width - 40, height - 24);
 
     ctx.restore();
   }
@@ -319,17 +636,23 @@ export function createMatrixExplorerView() {
       ]));
     } else {
       const sys = COLLOID_SYSTEMS.find(s => s.id === selectedSystemId) || COLLOID_SYSTEMS[4];
+      const phys = MEDIUM_PHYSICS[sys.dispersionMedium] || MEDIUM_PHYSICS['Cair'];
+
       hudContainer.appendChild(createElement('div', { className: 'hud-pill' }, [
         createElement('span', { className: 'label' }, 'Sistem: '),
         createElement('span', { className: 'val' }, sys.name)
       ]));
       hudContainer.appendChild(createElement('div', { className: 'hud-pill' }, [
-        createElement('span', { className: 'label' }, 'Dispersi: '),
-        createElement('span', { className: 'val' }, `${sys.dispersedPhase} / ${sys.dispersionMedium}`)
+        createElement('span', { className: 'label' }, 'Medium: '),
+        createElement('span', { className: 'val' }, `${sys.dispersionMedium.toUpperCase()}`)
       ]));
       hudContainer.appendChild(createElement('div', { className: 'hud-pill' }, [
-        createElement('span', { className: 'label' }, 'Tipe: '),
-        createElement('span', { className: 'val' }, 'Heterogen 2 Fase')
+        createElement('span', { className: 'label' }, 'Viskositas: '),
+        createElement('span', { className: 'val' }, phys.viscosity.split(' ')[0] + ' ' + (phys.viscosity.split(' ')[1] || ''))
+      ]));
+      hudContainer.appendChild(createElement('div', { className: 'hud-pill' }, [
+        createElement('span', { className: 'label' }, 'Gaya Antarmuka: '),
+        createElement('span', { className: 'val' }, sys.dispersionMedium === 'Gas' ? 'Koagulasi van der Waals' : sys.dispersionMedium === 'Cair' ? 'Tolakan DLVO (Stabil)' : 'Kisi Kaku (v=0)')
       ]));
     }
   }
@@ -428,6 +751,10 @@ export function createMatrixExplorerView() {
               onClick: () => {
                 isGasGas = false;
                 selectedSystemId = sys.id;
+                if (canvas) {
+                  const rect = canvas.getBoundingClientRect();
+                  initParticlesForMedium(sys.dispersionMedium, rect.width || 600, rect.height || 400);
+                }
                 renderControlDeck(deckContainer, hudContainer);
                 updateHUD(hudContainer);
               }
@@ -468,8 +795,33 @@ export function createMatrixExplorerView() {
 
       detailCard.appendChild(createElement('p', { style: { fontSize: '13.5px', color: 'var(--text-secondary)' } }, sys.characteristics));
 
+      // Physical Kinetics & Surface Thermodynamics Card
+      const physCard = createElement('div', { 
+        className: `editorial-card ${sys.dispersionMedium === 'Gas' ? 'accent-amber' : sys.dispersionMedium === 'Cair' ? 'accent-cobalt' : 'accent-teal'}`,
+        style: { marginTop: '8px', padding: '10px 12px' }
+      });
+
+      physCard.appendChild(createElement('div', { className: 'card-header' }, [
+        createElement('h4', { className: 'card-title', style: { fontSize: '12.5px' } }, `Kinetika & Interaksi Medium ${sys.dispersionMedium.toUpperCase()}`),
+        createElement('span', { className: 'card-tag' }, MEDIUM_PHYSICS[sys.dispersionMedium].viscosity)
+      ]));
+
+      let physDetail = '';
+      if (sys.dispersionMedium === 'Gas') {
+        physDetail = '• Viskositas medium mendekati nol (η ≈ 0.018 mPa·s): Partikel terdispersi meluncur cepat dengan mean free path panjang.\n• Tanpa Lapisan Ganda Listrik (EDL): Karena udara berkonstanta dielektrik rendah (ε_r ≈ 1), gaya tarik van der Waals mendominasi secara mutlak saat tumbukan, memicu koagulasi/agregasi spontan membentuk klaster yang lebih besar (tampak kilatan merah pada kanvas).';
+      } else if (sys.dispersionMedium === 'Cair') {
+        physDetail = '• Viskositas fluida (η ≈ 1.00 mPa·s): Meredam translasi inersial menjadi Gerak Brown murni (fluktuasi tumbukan molekul pelarut termal berkelanjutan).\n• Teori DLVO & Lapisan Ganda Listrik: Terbentuk lapisan Stern dan difus Gouy-Chapman (lingkaran halo putus-putus). Partikel saling tolak halus ketika lapisan ganda bertumpang tindih, mempertahankan kestabilan dispersi.';
+      } else {
+        physDetail = '• Matriks Padat Kaku (Rigid Solid Network, η → ∞): Seluruh gerak translasi terkunci mutlak (v_x = 0, v_y = 0).\n• Partikel fase terdispersi terperangkap di dalam kisi/pori padatan dan hanya menampilkan vibrasi termal lokal berfrekuensi tinggi dengan amplitudo sangat kecil (A ≈ 1.1 px) di sekitar koordinat jangkar asalnya.';
+      }
+
+      physCard.appendChild(createElement('div', { 
+        style: { fontSize: '12px', color: 'var(--text-primary)', whiteSpace: 'pre-line', marginTop: '4px', lineHeight: '1.5' } 
+      }, physDetail));
+      detailCard.appendChild(physCard);
+
       // Formula block
-      detailCard.appendChild(createElement('div', { className: 'formula-block' }, [
+      detailCard.appendChild(createElement('div', { className: 'formula-block', style: { marginTop: '8px' } }, [
         createElement('div', { className: 'formula-tex' }, 'ΔG = γ · ΔA  |  As = 3 / (ρ · r)'),
         createElement('div', { className: 'formula-caption' }, sys.thermodynamics)
       ]));
@@ -611,7 +963,8 @@ export function createMatrixExplorerView() {
       // Setup Canvas
       const setup = setupHighDPICanvas(canvas);
       ctx = setup.ctx;
-      initParticles(setup.width, setup.height);
+      const initialSys = COLLOID_SYSTEMS.find(s => s.id === selectedSystemId) || COLLOID_SYSTEMS[4];
+      initParticlesForMedium(initialSys.dispersionMedium, setup.width, setup.height);
 
       // Resize observer
       const resizeObserver = new ResizeObserver(() => {

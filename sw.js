@@ -3,7 +3,7 @@
  * Service Worker: Offline-first caching strategy for GitHub Pages.
  */
 
-const CACHE_NAME = 'aici-webchem-colloids-v1';
+const CACHE_NAME = 'aici-webchem-colloids-v3';
 
 const STATIC_ASSETS = [
   './',
@@ -21,18 +21,21 @@ const STATIC_ASSETS = [
   './src/core/canvas-utils.mjs',
   './src/data/colloids-data.mjs',
   './src/data/cases-data.mjs',
+  './src/data/nanocarriers-data.mjs',
   './src/views/matrix-explorer.mjs',
   './src/views/brownian-tyndall-lab.mjs',
   './src/views/dlvo-coagulation-lab.mjs',
   './src/views/surface-adsorption-lab.mjs',
+  './src/views/nanocarriers-lab.mjs',
   './src/views/case-diagnostics.mjs'
 ];
 
 self.addEventListener('install', (event) => {
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(STATIC_ASSETS);
-    }).then(() => self.skipWaiting())
+    })
   );
 });
 
@@ -47,38 +50,25 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Only handle GET requests
   if (event.request.method !== 'GET') return;
 
+  // Network First with Cache Fallback for instant updates and offline support
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        // Return cache immediately, fetch in background for cache revalidation
-        fetch(event.request).then((networkResponse) => {
-          if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, networkResponse));
-          }
-        }).catch(() => {});
-        return cachedResponse;
-      }
-
-      return fetch(event.request).then((networkResponse) => {
-        if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
-          return networkResponse;
+    fetch(event.request)
+      .then((networkResponse) => {
+        if (networkResponse && networkResponse.status === 200 && (networkResponse.type === 'basic' || networkResponse.type === 'cors')) {
+          const responseToCache = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseToCache));
         }
-
-        const responseToCache = networkResponse.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, responseToCache);
-        });
-
         return networkResponse;
-      }).catch(() => {
-        // If offline and request is for page, return cached index
-        if (event.request.mode === 'navigate') {
-          return caches.match('./index.html');
-        }
-      });
-    })
+      })
+      .catch(() => {
+        return caches.match(event.request).then((cachedResponse) => {
+          if (cachedResponse) return cachedResponse;
+          if (event.request.mode === 'navigate') {
+            return caches.match('./index.html');
+          }
+        });
+      })
   );
 });

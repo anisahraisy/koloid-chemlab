@@ -56,6 +56,22 @@ Aplikasi ini mencakup 5 modul utama dengan perhitungan matematis dan fisika kimi
   6. Analisis morfologi agregat surfaktan via parameter Israelachvili.
 - Dilengkapi pembahasan analitik langkah demi langkah, grafik radar kompetensi, dan penyimpanan skor otomatis di `localStorage`.
 
+### Modul 6: Nanokoloid & Rekayasa Antarmuka (`src/views/nanocarriers-lab.mjs`)
+- **Komparasi 3 Matriks Pembawa Lipofilik**:
+  - **Nanopartikel Padat (NP / SLN)**: Matriks kristal rapat ($\beta$-platelet), derajat kristalinitas $85-95\%$, kapasitas muat rendah, dan fenomena *Drug Expulsion* akibat transformasi polimorfik $\alpha \to \beta$.
+  - **Nanoemulsi (NE)**: Inti minyak cair isotropik tanpa kisi kristal, difusi cepat fluida (*burst release*), rawan koalesensi dan pematangan Ostwald (*Ostwald ripening*).
+  - **Nanostructured Lipid Carrier (NLC)**: Campuran rasio terstruktur solid lipid : liquid lipid ($70:30$), kisi kristal amorf tidak sempurna dengan kantong-kantong nano minyak, efisiensi penjeratan ($EE\%$) tertinggi, dan stabilitas tanpa ekspulsi zat aktif (*No Drug Expulsion*).
+- **Mekanisme Kimia Permukaan & Surfaktan**:
+  - **Tween 80 (Non-ionik)**: Stabilisasi sterik (*steric hindrance*) dengan sikat polimer rantai polioksietilen (POE), potensial zeta netral, dan resistensi tinggi terhadap penambahan garam elektrolit.
+  - **CTAB (Kationik)**: Stabilisasi elektrostatik lapisan ganda listrik (DLVO) melalui gugus amonium kuarterner bermuatan positif ($\zeta = +40 \text{ s/d } +60\text{ mV}$), sangat peka terhadap kompresi panjang Debye dan koagulasi cepat oleh garam.
+  - **Sistem Sinergis Tween 80 + CTAB**: Stabilisasi elektrosterik hibrid yang tangguh pada konsentrasi garam fisiologis.
+- **Fitur Simulasi Visual Interaktif**:
+  - **Mode Mikro-Struktur Inti (Cross-Section 2.5D)**: Potongan melintang resolusi tinggi menampilkan kisi kristal, tetesan minyak, kantong nano amorf, orientasi kepala/ekor surfaktan, dan pelepasan/ekspulsi senyawa aktif.
+  - **Mode Makro-Koloid (Multi-Particle Brownian)**: Difusi termal Stokes-Einstein, halo lapisan difus Gouy-Chapman, kompresi Debye oleh penambahan NaCl, dan pemodelan koagulasi/koalesensi interaktif.
+  - **Mode Komparasi 3-in-1**: Tampilan simultan ketiga sistem dalam satu kanvas untuk analisis langsung.
+  - **Uji Stabilitas Penyimpanan 6 Bulan (*Aging Test*)**: Percepatan waktu untuk menguji retensi zat aktif, pertumbuhan droplet, dan integritas dispersi koloid.
+  - **Tabel Komparasi Lengkap 1 & 2**: Matriks perbandingan sifat fisikokimia pembawa dan mekanisme kimia permukaan surfaktan.
+
 ---
 
 ## 2. Struktur Proyek
@@ -64,7 +80,7 @@ Aplikasi ini mencakup 5 modul utama dengan perhitungan matematis dan fisika kimi
 /
 ├── index.html                        # App Shell, Meta CSP, Font imports, Layout Container
 ├── manifest.json                     # Konfigurasi PWA lengkap
-├── sw.js                             # Service Worker (Offline-first caching)
+├── sw.js                             # Service Worker (Offline-first caching v3)
 ├── README.md                         # Dokumentasi ilmiah & panduan deploy
 ├── assets/
 │   ├── css/
@@ -82,12 +98,14 @@ Aplikasi ini mencakup 5 modul utama dengan perhitungan matematis dan fisika kimi
     │   └── canvas-utils.mjs          # High-DPI scaling, pointer normalization, RAF loop manager
     ├── data/
     │   ├── colloids-data.mjs         # Dataset 8 sistem koloid & parameter termodinamika
-    │   └── cases-data.mjs            # 6 studi kasus kuantitatif & rubrik penilaian
+    │   ├── cases-data.mjs            # 6 studi kasus kuantitatif & rubrik penilaian
+    │   └── nanocarriers-data.mjs     # Dataset komparasi NP vs NE vs NLC & Tween 80 vs CTAB
     └── views/
         ├── matrix-explorer.mjs       # Modul 1: Matriks Fase & Gibbs Antarmuka
         ├── brownian-tyndall-lab.mjs  # Modul 2: Rayleigh-Tyndall & Gerak Brown
         ├── dlvo-coagulation-lab.mjs  # Modul 3: Kurva DLVO, Potensial Zeta & Schulze-Hardy
         ├── surface-adsorption-lab.mjs# Modul 4: Gibbs Adsorpsi, CMC & Isoterm BET
+        ├── nanocarriers-lab.mjs      # Modul 6: Nanokoloid & Rekayasa Antarmuka
         └── case-diagnostics.mjs      # Modul 5: Evaluasi Kasus & Radar Chart
 ```
 

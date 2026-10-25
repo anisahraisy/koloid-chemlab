@@ -9,6 +9,7 @@ import { createMatrixExplorerView } from './views/matrix-explorer.mjs';
 import { createBrownianTyndallView } from './views/brownian-tyndall-lab.mjs';
 import { createDLVOCoagulationView } from './views/dlvo-coagulation-lab.mjs';
 import { createSurfaceAdsorptionView } from './views/surface-adsorption-lab.mjs';
+import { createNanocarriersView } from './views/nanocarriers-lab.mjs';
 import { createCaseDiagnosticsView } from './views/case-diagnostics.mjs';
 
 // Route Definitions
@@ -17,6 +18,7 @@ const routes = {
   '#/optics-brownian': createBrownianTyndallView,
   '#/dlvo': createDLVOCoagulationView,
   '#/surface': createSurfaceAdsorptionView,
+  '#/nanocarriers': createNanocarriersView,
   '#/cases': createCaseDiagnosticsView
 };
 
