@@ -8,6 +8,7 @@ const CACHE_NAME = 'aici-webchem-colloids-v1';
 const STATIC_ASSETS = [
   './',
   './index.html',
+  './404.html',
   './manifest.json',
   './assets/css/tokens.css',
   './assets/css/layout.css',

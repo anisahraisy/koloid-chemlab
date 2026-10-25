@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mengarahkan... — Kimia Koloid & Kimia Permukaan</title>
+  <script>
+    // GitHub Pages SPA Hash Redirect
+    // Redirects deep links to index.html preserving hash route
+    const path = window.location.pathname;
+    const repoSegment = '/koloid-chemlab';
+    let target = './index.html';
+    
+    // Extract remaining path if any
+    if (path.includes(repoSegment)) {
+      const sub = path.substring(path.indexOf(repoSegment) + repoSegment.length);
+      if (sub && sub !== '/' && sub !== '/index.html') {
+        target = './index.html#' + (sub.startsWith('/') ? sub : '/' + sub);
+      }
+    }
+    window.location.replace(target);
+  </script>
+</head>
+<body style="font-family: sans-serif; background: #FBF9F5; color: #18181B; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0;">
+  <p>Mengarahkan ke laboratorium...</p>
+</body>
+</html>

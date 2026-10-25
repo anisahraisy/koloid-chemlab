@@ -113,19 +113,21 @@ Buka peramban pada `http://localhost:8085`.
 
 Aplikasi ini menggunakan modul JavaScript standar (*Vanilla ES Modules*) dengan jalur relatif (`./`), sehingga tidak membutuhkan proses kompilasi atau bundler seperti Webpack atau Vite.
 
-1. Buat repositori baru di GitHub (misal: `aici-webchem`).
+1. Repositori GitHub: [`anisahraisy/koloid-chemlab`](https://github.com/anisahraisy/koloid-chemlab).
 2. *Push* seluruh berkas ke repositori:
    ```bash
-   git init
    git add .
-   git commit -m "feat: inisialisasi aplikasi kimia koloid & kimia permukaan"
-   git branch -M main
-   git remote add origin https://github.com/<username>/aici-webchem.git
+   git commit -m "feat: konfigurasi berkas GitHub Pages & PWA"
    git push -u origin main
    ```
-3. Buka **Settings** repositori di GitHub $\to$ **Pages**.
-4. Pada bagian **Build and deployment**:
-   - Source: `Deploy from a branch`
-   - Branch: `main` / `root`
-   - Klik **Save**.
-5. Situs web akan aktif di `https://<username>.github.io/aici-webchem/`.
+3. Buka **Settings** repositori di GitHub $\to$ **Pages** (`https://github.com/anisahraisy/koloid-chemlab/settings/pages`).
+4. Pada bagian **Build and deployment**, pilih salah satu opsi:
+   - **Opsi A (Rekomendasi - Otomatis via GitHub Actions)**:
+     - Source: `GitHub Actions`
+     - Workflow `.github/workflows/deploy.yml` akan otomatis aktif mendeploy web pada setiap push ke branch `main`.
+   - **Opsi B (Klasik via Branch)**:
+     - Source: `Deploy from a branch`
+     - Branch: `main` / `/(root)`
+     - Klik **Save**.
+5. Situs web interaktif dapat diakses pada:
+   **`https://anisahraisy.github.io/koloid-chemlab/`**
